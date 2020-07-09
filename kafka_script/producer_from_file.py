@@ -12,7 +12,7 @@ def delivery_report(err, msg):
 
 
 p = Producer({'bootstrap.servers': 'localhost:9092'})
-file_name = '/home/adfr/Documenti/python-BigData/progetto2/data/dati_meteo.json'
+file_name = '/home/adfr/Documenti/python-BigData/progetto2/data/mini_data.json'
 
 file_open = open(file_name,'r')
 

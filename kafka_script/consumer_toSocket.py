@@ -2,6 +2,7 @@ from confluent_kafka import Consumer
 import socket
 import sys
 import time
+import json
 
 HOST = 'localhost'
 PORT = 2020
@@ -37,9 +38,9 @@ while now<start_time+30:
     if msg.error():
         print("Consumer error: {}".format(msg.error()))
         continue
-    message = msg.value().decode('utf-8')
-    message = message+'\n'
-   
+    
+    row = json.loads(msg.value().decode('utf-8'))
+    message = json.dumps(row)+'\n'
     sended = conn.send(message.encode())
     print("sended message to socket")
     #print('Received message: {}'.format(msg.value().decode('utf-8')))
