@@ -22,10 +22,11 @@ if __name__ == "__main__":
     """
     
     
-    temp_stream = d_stream.map(lambda row: toCelsius(row['temp']))
-    sum_temp = temp_stream.map(lambda a: (a,1)).reduceByWindow(lambda a,b: (a[0]+b[0],a[1]+b[1]),invReduceFunc=None,windowDuration=30,slideDuration=5)
+    temp_stream = d_stream.map(lambda row: (row['regione'],float(toCelsius(row['temp']))))
+    #sum_temp = temp_stream.map(lambda a: (a,1)).reduceByWindow(lambda a,b: (a[0]+b[0],a[1]+b[1]),invReduceFunc=None,windowDuration=30,slideDuration=5)
+    sum_temp = temp_stream.map(lambda r_t: (r_t[0],(r_t[1],1))).reduceByKeyAndWindow(lambda a,b: (a[0]+b[0],a[1]+b[1]),invFunc=None,windowDuration=30,slideDuration=5)
     
-    avg_temp = sum_temp.map(lambda a: a[0]/a[1])
+    avg_temp = sum_temp.map(lambda a: (a[0],a[1][0]/a[1][1]))
     
     avg_temp.pprint()
     #avg_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
