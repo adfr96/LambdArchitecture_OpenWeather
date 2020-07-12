@@ -9,10 +9,6 @@ PORT = 2020
 address = (HOST,PORT)
 name  = sys.argv[1]
 
-start_time = time.time()
-now = start_time
-
-
 c = Consumer({
     'bootstrap.servers': 'localhost:9092',
     'group.id': name,
@@ -27,6 +23,9 @@ print("prima della connessione")
 s.listen()
 conn,addr = s.accept() 
 print("dopo la connessione")
+
+start_time = time.time()
+now = start_time
 
 while now<start_time+30:
     now = time.time()
