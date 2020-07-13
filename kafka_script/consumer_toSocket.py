@@ -28,7 +28,7 @@ s.listen()
 conn,addr = s.accept() 
 print("dopo la connessione")
 
-while now<start_time+30:
+while now<start_time+60:
     now = time.time()
     msg = c.poll(1.0)
 

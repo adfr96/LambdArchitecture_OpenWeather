@@ -3,7 +3,7 @@ from pyspark.streaming import StreamingContext
 from confluent_kafka import Consumer
 import json
 
-PROJ_DIR = '/home/adfr/Documenti/python-BigData/progetto2/'
+PROJ_DIR = '/home/giacomo/Documenti/progetto-2_big_data/'
 
 def toCelsius(temp):
     return float(temp)-273.15
@@ -29,10 +29,10 @@ if __name__ == "__main__":
     #avg_temp.foreachRDD(lambda rdd: list_avg.append(rdd.collect()))
     
     avg_temp.pprint()
-    avg_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
+    #avg_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
     #d_stream.pprint()
-    #d_stream.saveAsTextFiles('output/')
-    
+    #d_stream.saveAsTextFiles('output/'))
+
     ssc.start()
     ssc.awaitTermination(40)
     print(list_avg)

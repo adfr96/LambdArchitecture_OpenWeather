@@ -12,13 +12,13 @@ def delivery_report(err, msg):
 
 
 p = Producer({'bootstrap.servers': 'localhost:9092'})
-file_name = '/home/adfr/Documenti/python-BigData/progetto2/data/mini_data.json'
+file_name = '/home/giacomo/Documenti/dati_meteo.json'
 
 file_open = open(file_name,'r')
 
 for line in file_open:
     #row = json.load(line)
-    
+    print(f'Linea letta: {line}\n')
     p.poll(0)
     p.produce('test', line.encode('utf-8'), callback=delivery_report)
 
