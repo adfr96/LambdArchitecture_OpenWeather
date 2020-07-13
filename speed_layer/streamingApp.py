@@ -4,13 +4,11 @@ from confluent_kafka import Consumer
 import json
 import sys
 
-<<<<<<< HEAD
+
 PROJ_DIR = '/home/giacomo/Documenti/progetto-2_big_data/'
-=======
 PROJ_DIR = sys.argv[1]
 
 WIND_THRESHOLD = 4
->>>>>>> de72efc45606dc4359c63ee537c850c63ce7651d
 
 def toCelsius(temp):
     return float(temp)-273.15
@@ -39,13 +37,12 @@ if __name__ == "__main__":
     sum_temp = temp_stream.map(lambda r_t: (r_t[0],(r_t[1],1))).reduceByKeyAndWindow(sum_func,invFunc=diff_func,windowDuration=30,slideDuration=5)
     #sum_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
     avg_temp = sum_temp.map(lambda a: (a[0],a[1][0]/a[1][1]))
-    
-<<<<<<< HEAD
+
     avg_temp.pprint()
     #avg_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
     #d_stream.pprint()
     #d_stream.saveAsTextFiles('output/'))
-=======
+
     avg_temp.pprint(num=1000)
     avg_temp.saveAsTextFiles(PROJ_DIR+'data/output/avg_temp/')
     
@@ -54,7 +51,6 @@ if __name__ == "__main__":
     wind_stream = wind_stream.filter(lambda c_w: c_w[1][0]>WIND_THRESHOLD)
     wind_stream.pprint(num=1000)
     wind_stream.saveAsTextFiles(PROJ_DIR+'data/output/wind/')
->>>>>>> de72efc45606dc4359c63ee537c850c63ce7651d
 
     ssc.start()
     ssc.awaitTermination(40)
