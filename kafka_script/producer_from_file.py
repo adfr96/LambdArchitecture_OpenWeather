@@ -1,6 +1,7 @@
 from confluent_kafka import Producer
 import time
 import json
+import sys
 
 def delivery_report(err, msg):
     """ Called once for each message produced to indicate delivery result.
@@ -10,9 +11,9 @@ def delivery_report(err, msg):
     else:
         print('Message delivered to {} [{}]'.format(msg.topic(), msg.partition()))
 
-
+path_file = sys.argv[1]
 p = Producer({'bootstrap.servers': 'localhost:9092'})
-file_name = '/home/giacomo/Documenti/dati_meteo.json'
+file_name = path_file+'dati_meteo.json'
 
 file_open = open(file_name,'r')
 

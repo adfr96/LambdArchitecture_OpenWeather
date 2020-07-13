@@ -3,3 +3,6 @@ test/*
 
 .vscode
 .vscode/*
+
+.idea
+.idea/*
