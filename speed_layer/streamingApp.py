@@ -4,6 +4,8 @@ from confluent_kafka import Consumer
 import json
 import sys
 
+
+PROJ_DIR = '/home/giacomo/Documenti/progetto-2_big_data/'
 PROJ_DIR = sys.argv[1]
 
 WIND_THRESHOLD = 4
@@ -35,7 +37,12 @@ if __name__ == "__main__":
     sum_temp = temp_stream.map(lambda r_t: (r_t[0],(r_t[1],1))).reduceByKeyAndWindow(sum_func,invFunc=diff_func,windowDuration=30,slideDuration=5)
     #sum_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
     avg_temp = sum_temp.map(lambda a: (a[0],a[1][0]/a[1][1]))
-    
+
+    avg_temp.pprint()
+    #avg_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
+    #d_stream.pprint()
+    #d_stream.saveAsTextFiles('output/'))
+
     avg_temp.pprint(num=1000)
     avg_temp.saveAsTextFiles(PROJ_DIR+'data/output/avg_temp/')
     

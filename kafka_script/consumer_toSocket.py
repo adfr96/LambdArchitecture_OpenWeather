@@ -28,6 +28,7 @@ start_time = time.time()
 now = start_time
 
 while now<start_time+30:
+    
     now = time.time()
     msg = c.poll(1.0)
 
