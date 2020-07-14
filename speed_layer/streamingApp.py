@@ -13,11 +13,26 @@ PROJ_DIR = sys.argv[1]
 WIND_THRESHOLD = 4
 
 
+analysisdef wind_to_row(w):
+    return Row(city=w['citta'],wind_speed = w['wind_speed'], wind_deg = w['wind_deg'], date = w['date'])
+
+
 def show_wind_dataframe(rdd):
+    print("print wind dataframe")
+    show_dataframe(rdd,wind_to_row)
+
+def rain_to_row(r):
+    return Row(city=r['citta'],rain_1h=r['rain_1h'],rain_3h=r['rain_3h'],date = r['date'])
+
+def show_rain_dataframe(rdd):
+    print("print rain dataframe")
+    show_dataframe(rdd,rain_to_row)
+
+def show_dataframe(rdd,to_row):
         if(rdd.count() > 0 ):
             spark = SparkSession.builder.getOrCreate()
 
-            rowRdd = rdd.map(lambda w: Row(city=w['citta'],wind_speed = w['wind_speed'], wind_deg = w['wind_deg'], date = w['date']))
+            rowRdd = rdd.map(to_row)
             wind_dataframe = spark.createDataFrame(rowRdd)
 
             #print("stampa del dataframe")
@@ -45,14 +60,13 @@ if __name__ == "__main__":
     sum_temp = temp_stream.map(lambda r_t: (r_t[0],(r_t[1],1))).reduceByKeyAndWindow(sum_func,invFunc=diff_func,windowDuration=30,slideDuration=5)
     #sum_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
     avg_temp = sum_temp.filter(lambda a: a[1][1]>0).map(lambda a: {'regione':a[0],'media_temp':a[1][0]/a[1][1]})
-    avg_temp.pprint()
-    #avg_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
-
-    avg_temp.pprint(num=1000)
-    avg_temp.saveAsTextFiles(PROJ_DIR+'data/output/avg_temp/')
+    
+    
+    #avg_temp.pprint(num=1000)
+    #avg_temp.saveAsTextFiles(PROJ_DIR+'data/output/avg_temp/')
     
     #CONTROLLO VENTO FORTE PER CITTA
-    #TODO convertire data
+
     wind_stream = d_stream.map(lambda row: {'citta':row['citta'],'wind_speed':row['wind_speed'],'wind_deg':row['wind_deg'],'date': row['datetime']})
     wind_stream = wind_stream.filter(lambda c_w: c_w['wind_speed']>WIND_THRESHOLD)
     #wind_stream.pprint(num=1000)
@@ -60,6 +74,12 @@ if __name__ == "__main__":
    
     wind_stream.foreachRDD(show_wind_dataframe)
         
+    #PIOGGIA
+
+    rain_stream = d_stream.map(lambda row: {'citta':row['citta'],'rain_1h':row['rain_1h'],'rain_3h':row['rain_3h'],'date': row['datetime']})
+    rain_stream = rain_stream.filter(lambda rain: rain['rain_1h'] !=0 or rain['rain_3h']!=0)
+    
+    rain_stream.foreachRDD(show_rain_dataframe)
 
     ssc.start()
     ssc.awaitTermination(40)
