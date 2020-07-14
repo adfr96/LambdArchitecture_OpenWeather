@@ -6,8 +6,10 @@ import json
 import datetime
 import sys
 
+#import os
+#os.environ['PYSPARK_SUBMIT_ARGS']= '--packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.2 pyspark-shell'
 
-PROJ_DIR = '/home/giacomo/Documenti/progetto-2_big_data/'
+#PROJ_DIR = '/home/giacomo/Documenti/progetto-2_big_data/'
 PROJ_DIR = sys.argv[1]
 
 WIND_THRESHOLD = 4
@@ -15,7 +17,6 @@ WIND_THRESHOLD = 4
 
 def wind_to_row(w):
     return Row(city=w['citta'],wind_speed = w['wind_speed'], wind_deg = w['wind_deg'], date = w['date'])
-
 
 def show_wind_dataframe(rdd):
     print("print wind dataframe")
@@ -30,16 +31,29 @@ def show_rain_dataframe(rdd):
 
 def show_dataframe(rdd,to_row):
         if(rdd.count() > 0 ):
+
             spark = SparkSession.builder.getOrCreate()
 
             rowRdd = rdd.map(to_row)
-            wind_dataframe = spark.createDataFrame(rowRdd)
+            dataframe = spark.createDataFrame(rowRdd)
 
-            #print("stampa del dataframe")
-            wind_dataframe.show()
+            dataframe.show()
+
+def wind_to_mongo(rdd):
+    to_mongo(rdd,wind_to_row,"real_view_venti")
+
+def to_mongo(rdd,to_row,view_name):
+
+    spark_session = SparkSession.builder.config("spark.mongodb.output.uri",
+                                                     "mongodb://127.0.0.1/db_meteo."+view_name).getOrCreate()
+    rowRdd = rdd.map(to_row)
+    dataframe = spark_session.createDataFrame(rowRdd)
+
+    dataframe.write.format("mongo").mode("append").save()
+
 if __name__ == "__main__":
     sc = SparkContext(appName="PythonStreamingRecieverKafkaWordCount")
-    ssc = StreamingContext(sc, 5) # 5 second window    
+    ssc = StreamingContext(sc, 5) # 5 second window
 
     d_stream = ssc.socketTextStream('localhost',2020)
     ssc.checkpoint(PROJ_DIR+'data/checkpoint/')
@@ -73,7 +87,8 @@ if __name__ == "__main__":
     #wind_stream.saveAsTextFiles(PROJ_DIR+'data/output/wind/')
    
     wind_stream.foreachRDD(show_wind_dataframe)
-        
+    wind_stream.foreachRDD(wind_to_mongo)
+
     #PIOGGIA
 
     rain_stream = d_stream.map(lambda row: {'citta':row['citta'],'rain_1h':row['rain_1h'],'rain_3h':row['rain_3h'],'date': row['datetime']})
