@@ -3,6 +3,7 @@ from pyspark.sql import SparkSession, Row
 from pyspark.streaming import StreamingContext
 from confluent_kafka import Consumer
 import json
+import datetime
 import sys
 
 
@@ -10,9 +11,6 @@ PROJ_DIR = '/home/giacomo/Documenti/progetto-2_big_data/'
 PROJ_DIR = sys.argv[1]
 
 WIND_THRESHOLD = 4
-
-def toCelsius(temp):
-    return float(temp)-273.15
 
 
 def show_wind_dataframe(rdd):
@@ -43,7 +41,7 @@ if __name__ == "__main__":
     
     #MEDIA TEMPERATURA PER REGIONE
 
-    temp_stream = d_stream.map(lambda row: (row['regione'],float(toCelsius(row['temp']))))
+    temp_stream = d_stream.map(lambda row: (row['regione'],row['temp']))
     sum_temp = temp_stream.map(lambda r_t: (r_t[0],(r_t[1],1))).reduceByKeyAndWindow(sum_func,invFunc=diff_func,windowDuration=30,slideDuration=5)
     #sum_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
     avg_temp = sum_temp.filter(lambda a: a[1][1]>0).map(lambda a: {'regione':a[0],'media_temp':a[1][0]/a[1][1]})
