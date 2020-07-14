@@ -6,8 +6,10 @@ import json
 import datetime
 import sys
 
+#import os
+#os.environ['PYSPARK_SUBMIT_ARGS']= '--packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.2 pyspark-shell'
 
-PROJ_DIR = '/home/giacomo/Documenti/progetto-2_big_data/'
+#PROJ_DIR = '/home/giacomo/Documenti/progetto-2_big_data/'
 PROJ_DIR = sys.argv[1]
 
 WIND_THRESHOLD = 4
@@ -15,16 +17,18 @@ WIND_THRESHOLD = 4
 
 def show_wind_dataframe(rdd):
         if(rdd.count() > 0 ):
-            spark = SparkSession.builder.getOrCreate()
-
+            spark_session = SparkSession.builder().getOrCreate()
+            #spark_session = SparkSession.builder.config("spark.mongodb.output.uri",
+            #                                            "mongodb://127.0.0.1/db_meteo.real_view_venti").getOrCreate()
             rowRdd = rdd.map(lambda w: Row(city=w['citta'],wind_speed = w['wind_speed'], wind_deg = w['wind_deg'], date = w['date']))
-            wind_dataframe = spark.createDataFrame(rowRdd)
+            wind_dataframe = spark_session.createDataFrame(rowRdd)
+            #wind_dataframe.write.format("mongo").mode("append").save()
 
             #print("stampa del dataframe")
             wind_dataframe.show()
 if __name__ == "__main__":
     sc = SparkContext(appName="PythonStreamingRecieverKafkaWordCount")
-    ssc = StreamingContext(sc, 5) # 5 second window    
+    ssc = StreamingContext(sc, 5) # 5 second window
 
     d_stream = ssc.socketTextStream('localhost',2020)
     ssc.checkpoint(PROJ_DIR+'data/checkpoint/')
