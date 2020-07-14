@@ -5,6 +5,9 @@ import json
 import pandas as pd
 import sys
 
+PROJ_DIR = sys.argv[1]
+appId = sys.argv[2]
+
 def delivery_report(err, msg):
     """ Called once for each message produced to indicate delivery result.
         Triggered by poll() or flush(). """
@@ -14,7 +17,7 @@ def delivery_report(err, msg):
         print('Message delivered to {} [{}]'.format(msg.topic(), msg.partition()))
 
 def getLineFromWebSocket(provincia):
-    param_request = f'http://api.openweathermap.org/data/2.5/weather?id={provincia[3]}&appid=1e22a4bd5157a943d3ae41df9fcf7946&lang=it'
+    param_request = f'http://api.openweathermap.org/data/2.5/weather?id={provincia[3]}&appid={appId}&lang=it'
     r = requests.get(param_request)
     risp = r.text
 
@@ -93,7 +96,7 @@ def getProvincia(id_provincie):
     INDEX+=1
     return tmp
 
-PROJ_DIR = sys.argv[1]
+
 INDEX = 0
 
 
