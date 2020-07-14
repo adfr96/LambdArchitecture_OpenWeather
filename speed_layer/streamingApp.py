@@ -13,7 +13,7 @@ PROJ_DIR = sys.argv[1]
 WIND_THRESHOLD = 4
 
 
-analysisdef wind_to_row(w):
+def wind_to_row(w):
     return Row(city=w['citta'],wind_speed = w['wind_speed'], wind_deg = w['wind_deg'], date = w['date'])
 
 
