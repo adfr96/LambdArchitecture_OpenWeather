@@ -39,8 +39,8 @@ def show_wind_dataframe(rdd):
             #print("stampa del dataframe")
             wind_dataframe.show()
 
-    print("print wind dataframe")
-    show_dataframe(rdd, wind_to_row)
+        print("print wind dataframe")
+        show_dataframe(rdd, wind_to_row)
 
 
 def show_rain_dataframe(rdd):
