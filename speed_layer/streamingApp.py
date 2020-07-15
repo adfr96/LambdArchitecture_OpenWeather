@@ -18,7 +18,7 @@ WIND_THRESHOLD = 4
 def show_wind_dataframe(rdd):
         if(rdd.count() > 0 ):
             spark_session = SparkSession.builder().getOrCreate()
-            #spark_session = SparkSession.builder.config("spark.mongodb.output.uri",
+            #spark_session = SparkSession.builder.config("w",
             #                                            "mongodb://127.0.0.1/db_meteo.real_view_venti").getOrCreate()
             rowRdd = rdd.map(lambda w: Row(city=w['citta'],wind_speed = w['wind_speed'], wind_deg = w['wind_deg'], date = w['date']))
             wind_dataframe = spark_session.createDataFrame(rowRdd)

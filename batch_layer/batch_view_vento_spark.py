@@ -48,7 +48,7 @@ rdd_meteo = rdd_meteo.reduceByKey(max_wind_speed)
 
 rdd_meteo.foreach(lambda a: print(a))
 
-wind_dataFrame = ss.createDataFrame(rdd_meteo.collect(), ['max_wind_speed', 'wind_deg'])
+wind_dataFrame = ss.createDataFrame(rdd_meteo.collect(), ['citta', 'wind'])
 wind_dataFrame.write.format("mongo").mode("append").save()
 fine = datetime.datetime.now().time()
 print(fine)
