@@ -42,6 +42,9 @@ def show_wind_dataframe(rdd):
         print("print wind dataframe")
         show_dataframe(rdd, wind_to_row)
 
+    print("print wind dataframe")
+    show_dataframe(rdd, wind_to_row)
+
 
 def show_rain_dataframe(rdd):
     print("print rain dataframe")
