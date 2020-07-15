@@ -4,7 +4,7 @@ import sys
 import time
 import json
 
-from LambdArchitecture_OpenWeather.propertis import PORT_CONSUMER_TO_STREAMING
+from LambdArchitecture_OpenWeather.propertis import PORT_CONSUMER_TO_STREAMING, TTL
 
 HOST = 'localhost'
 address = (HOST, PORT_CONSUMER_TO_STREAMING)
@@ -28,7 +28,7 @@ print("dopo la connessione")
 start_time = time.time()
 now = start_time
 
-while now < start_time + 30:
+while now < start_time + TTL:
 
     now = time.time()
     msg = c.poll(1.0)
