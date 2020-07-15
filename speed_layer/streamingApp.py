@@ -18,38 +18,48 @@ WIND_THRESHOLD = 4
 def wind_to_row(w):
     return Row(city=w['citta'],wind_speed = w['wind_speed'], wind_deg = w['wind_deg'], date = w['date'])
 
-def show_wind_dataframe(rdd):
-    print("print wind dataframe")
-    show_dataframe(rdd,wind_to_row)
 
 def rain_to_row(r):
     return Row(city=r['citta'],rain_1h=r['rain_1h'],rain_3h=r['rain_3h'],date = r['date'])
+
+def rain_now_to_row(r):
+    return Row(city=r['citta'],weather_main=r['main'],date = r['date'])
+
+def show_wind_dataframe(rdd):
+    print("print wind dataframe")
+    show_dataframe(rdd,wind_to_row)
 
 def show_rain_dataframe(rdd):
     print("print rain dataframe")
     show_dataframe(rdd,rain_to_row)
 
+def show_rain_now_dataframe(rdd):
+    show_dataframe(rdd,rain_now_to_row)
+
+#prende un rdd e una funzione 'to_row' che trasforma una riga dell'rdd in formato Row, 
+# crea un dataframe dall'rdd e lo printa
+# viene chiamata da una 'show_pippo_dataframe(rdd)' 
 def show_dataframe(rdd,to_row):
-        if(rdd.count() > 0 ):
+    if(rdd.count() > 0 ):
 
-            spark = SparkSession.builder.getOrCreate()
+        spark = SparkSession.builder.getOrCreate()
 
-            rowRdd = rdd.map(to_row)
-            dataframe = spark.createDataFrame(rowRdd)
+        rowRdd = rdd.map(to_row)
+        dataframe = spark.createDataFrame(rowRdd)
 
-            dataframe.show()
+        dataframe.show()
 
 def wind_to_mongo(rdd):
     to_mongo(rdd,wind_to_row,"real_view_venti")
 
 def to_mongo(rdd,to_row,view_name):
+    if(rdd.count() > 0 ):
+        spark_session = SparkSession.builder.config("spark.mongodb.output.uri",
+                                                        "mongodb://127.0.0.1/db_meteo."+view_name).getOrCreate()
+        rowRdd = rdd.map(to_row)
+        dataframe = spark_session.createDataFrame(rowRdd)
 
-    spark_session = SparkSession.builder.config("spark.mongodb.output.uri",
-                                                     "mongodb://127.0.0.1/db_meteo."+view_name).getOrCreate()
-    rowRdd = rdd.map(to_row)
-    dataframe = spark_session.createDataFrame(rowRdd)
-
-    dataframe.write.format("mongo").mode("append").save()
+        dataframe.write.format("mongo").mode("append").save()
 
 if __name__ == "__main__":
     sc = SparkContext(appName="PythonStreamingRecieverKafkaWordCount")
@@ -87,14 +97,21 @@ if __name__ == "__main__":
     #wind_stream.saveAsTextFiles(PROJ_DIR+'data/output/wind/')
    
     wind_stream.foreachRDD(show_wind_dataframe)
-    wind_stream.foreachRDD(wind_to_mongo)
+    #wind_stream.foreachRDD(wind_to_mongo)
 
-    #PIOGGIA
+    #PIOGGIA A BREVE
 
     rain_stream = d_stream.map(lambda row: {'citta':row['citta'],'rain_1h':row['rain_1h'],'rain_3h':row['rain_3h'],'date': row['datetime']})
     rain_stream = rain_stream.filter(lambda rain: rain['rain_1h'] !=0 or rain['rain_3h']!=0)
     
     rain_stream.foreachRDD(show_rain_dataframe)
+
+    #PIOGGIA ORA
+
+    rain_now_stream = d_stream.map(lambda row: {'citta':row['citta'], 'main':row['weather_main'],'date': row['datetime']})
+    rain_now_stream = rain_now_stream.filter(lambda rain: rain['main'] == 'Rain')
+    
+    rain_now_stream.foreachRDD(show_rain_now_dataframe)
 
     ssc.start()
     ssc.awaitTermination(40)
