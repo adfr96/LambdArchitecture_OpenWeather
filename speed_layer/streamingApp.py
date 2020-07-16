@@ -1,7 +1,10 @@
+import sys
+sys.path.append('..')
+from datetime import datetime
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession, Row
 from pyspark.streaming import StreamingContext
-from LambdArchitecture_OpenWeather.propertis import PROJ_DIR, TTL
+from LambdArchitecture_OpenWeather.propertis import PROJ_DIR, TTL, BATCH_DURATION, SLIDE_DURATION, WINDOW_DURATION
 import json
 
 # import os
@@ -27,21 +30,6 @@ def rain_now_to_row(r):
 
 
 def show_wind_dataframe(rdd):
-
-        if(rdd.count() > 0 ):
-            spark_session = SparkSession.builder().getOrCreate()
-            #spark_session = SparkSession.builder.config("w",
-            #                                            "mongodb://127.0.0.1/db_meteo.real_view_venti").getOrCreate()
-            rowRdd = rdd.map(lambda w: Row(city=w['citta'],wind_speed = w['wind_speed'], wind_deg = w['wind_deg'], date = w['date']))
-            wind_dataframe = spark_session.createDataFrame(rowRdd)
-            #wind_dataframe.write.format("mongo").mode("append").save()
-
-            #print("stampa del dataframe")
-            wind_dataframe.show()
-
-        print("print wind dataframe")
-        show_dataframe(rdd, wind_to_row)
-
     print("print wind dataframe")
     show_dataframe(rdd, wind_to_row)
 
@@ -52,6 +40,7 @@ def show_rain_dataframe(rdd):
 
 
 def show_rain_now_dataframe(rdd):
+    print("print now rain dataframe")
     show_dataframe(rdd, rain_now_to_row)
 
 
@@ -82,8 +71,11 @@ def to_mongo(rdd, to_row, view_name):
         dataframe.write.format("mongo").mode("append").save()
 
 if __name__ == "__main__":
+
+    print(f'start time: {datetime.now()}')
+
     sc = SparkContext(appName="PythonStreamingRecieverKafkaWordCount")
-    ssc = StreamingContext(sc, batchDuration=10)  # 10 second window
+    ssc = StreamingContext(sc, batchDuration=BATCH_DURATION)  # 10 second window
 
     d_stream = ssc.socketTextStream('localhost', 2020)
     ssc.checkpoint(PROJ_DIR + 'data/checkpoint/')
@@ -107,8 +99,8 @@ if __name__ == "__main__":
 
     temp_stream = d_stream.map(lambda row: (row['regione'], row['temp']))
     sum_temp = temp_stream.map(lambda r_t: (r_t[0], (r_t[1], 1))).reduceByKeyAndWindow(sum_func, invFunc=diff_func,
-                                                                                       windowDuration=30,
-                                                                                       slideDuration=5)
+                                                                                       windowDuration=WINDOW_DURATION,
+                                                                                       slideDuration=SLIDE_DURATION)
     # sum_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
     avg_temp = sum_temp.filter(lambda a: a[1][1] > 0).map(lambda a: {'regione': a[0], 'media_temp': a[1][0] / a[1][1]})
 

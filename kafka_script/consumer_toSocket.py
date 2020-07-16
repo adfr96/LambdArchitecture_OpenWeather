@@ -1,6 +1,8 @@
+from datetime import datetime
 from confluent_kafka import Consumer
 import socket
 import sys
+sys.path.append('..')
 import time
 import json
 
@@ -9,21 +11,23 @@ from LambdArchitecture_OpenWeather.propertis import PORT_CONSUMER_TO_STREAMING, 
 HOST = 'localhost'
 address = (HOST, PORT_CONSUMER_TO_STREAMING)
 name = sys.argv[1]
+topic = sys.argv[2]
 
+print(f'Start time: {datetime.now()}')
 c = Consumer({
     'bootstrap.servers': 'localhost:9092',
     'group.id': name,
     'auto.offset.reset': 'earliest'
 })
 
-c.subscribe(['test'])
+c.subscribe([topic])
 s = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
 s.bind(address)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1024)
-print("prima della connessione")
+print("In attesa della connessione")
 s.listen()
 conn, addr = s.accept()
-print("dopo la connessione")
+print(f'Connesso a {conn.getpeername()}')
 
 start_time = time.time()
 now = start_time
@@ -43,8 +47,9 @@ while now < start_time + TTL:
     row = json.loads(msg.value().decode('utf-8'))
     message = json.dumps(row) + '\n'
     sended = conn.send(message.encode())
-    print("sended message to socket")
+    print(f'sended message to socket: {conn.getpeername()}')
     # print('Received message: {}'.format(msg.value().decode('utf-8')))
 
 s.close()
 c.close()
+print(f'End time: {datetime.now()}')
