@@ -3,13 +3,16 @@ import time
 import requests
 import json
 import jsons
+jsons.suppress_warnings()
 import pandas as pd
 import sys
-import datetime
+sys.path.append('..')
+from datetime import datetime
 
-from LambdArchitecture_OpenWeather.propertis import PROJ_DIR
+from LambdArchitecture_OpenWeather.propertis import PROJ_DIR, TTL
 
 appId = sys.argv[1]
+topic = sys.argv[2]
 INDEX = 0
 
 def delivery_report(err, msg):
@@ -26,7 +29,7 @@ def toCelsius(temp):
 
 
 def conv_date(date):
-    return datetime.datetime.fromtimestamp(date)
+    return datetime.fromtimestamp(date)
 
 
 def getLineFromWebSocket(provincia):
@@ -104,7 +107,8 @@ def getLineFromWebSocket(provincia):
     return (jsons.dumps(row))
 
 
-def getProvincia(id_provincie, INDEX=None):
+def getProvincia(id_provincie):
+    global INDEX
     if (INDEX == len(id_provincie)):
         INDEX = 0
     tmp = id_provincie[INDEX]
@@ -112,7 +116,7 @@ def getProvincia(id_provincie, INDEX=None):
     return tmp
 
 
-
+print(f'Start time: {datetime.now()}')
 
 id_provincie = pd.read_csv(PROJ_DIR + 'data/id_provincie.csv', sep=',')
 id_provincie = id_provincie.values
@@ -122,13 +126,16 @@ p = Producer({'bootstrap.servers': 'localhost:9092'})
 start_time = time.time()
 now = start_time
 
-while now < start_time + 30:
+while now < start_time + TTL:
     now = time.time()
-    line = getLineFromWebSocket(getProvincia(id_provincie,INDEX))
+    line = getLineFromWebSocket(getProvincia(id_provincie))
+    print("read line: \n "+line)
 
     p.poll(0)
-    p.produce('test', line.encode('utf-8'), callback=delivery_report)
+    p.produce(topic, line.encode('utf-8'), callback=delivery_report)
 
-    time.sleep(1)
+    time.sleep(1.5)
 
 p.flush()
+
+print(f'End time: {datetime.now()}')
