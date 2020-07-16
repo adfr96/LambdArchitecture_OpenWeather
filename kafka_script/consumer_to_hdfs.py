@@ -14,7 +14,7 @@ topic = sys.argv[2]
 
 
 def save_to_file(row_list):
-    with hdfs.open("data/data_openWeather.csv", mode='a') as csv_file:
+    with hdfs.open("data/data_openWeather.csv", mode='at') as csv_file:
         fieldnames = row_list[0].keys()
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writerows(row_list)
