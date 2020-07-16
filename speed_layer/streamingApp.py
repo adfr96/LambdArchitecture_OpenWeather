@@ -1,5 +1,3 @@
-import sys
-sys.path.append('..')
 from datetime import datetime
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession, Row

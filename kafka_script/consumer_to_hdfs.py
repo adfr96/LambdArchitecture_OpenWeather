@@ -1,7 +1,6 @@
 from datetime import datetime
 from confluent_kafka import Consumer
 import sys
-sys.path.append('..')
 import time
 import json
 import pydoop.hdfs as hdfs
