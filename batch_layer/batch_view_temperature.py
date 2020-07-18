@@ -6,8 +6,13 @@ import os
 os.environ['PYSPARK_SUBMIT_ARGS']= '--packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.2 pyspark-shell'
 
 
-def sum_temp(t1,t2):
-    return {'sum_temp':t1['sum_temp']+t2['sum_temp'],'samples':t1['samples']+t2['samples']}
+def reduce_temp(t1, t2):
+    t = {}
+    t['sum_temp']=  t1['sum_temp'] + t2['sum_temp']
+    t['samples'] =  t1['samples'] + t2['samples']
+    t['temp_max'] = max(t1['temp_max'],t2['temp_max'])
+    t['temp_min'] = min(t1['temp_min'], t2['temp_min'])
+    return t
 
 def convert_str_to_date(str_date):
     date_obj = datetime.datetime.strptime(str_date, '%Y-%m-%d')
@@ -15,7 +20,8 @@ def convert_str_to_date(str_date):
 
 def map_k_v(line):
     date_time_obj = datetime.datetime.strptime(line[20], '%Y-%m-%d %H:%M:%S')
-    return ((line[0],line[2],date_time_obj.year,date_time_obj.month,date_time_obj.day,date_time_obj.hour),{'sum_temp':float(line[7]),'samples':1})
+    return ((line[0],line[1],line[2],date_time_obj.year,date_time_obj.month,date_time_obj.day,date_time_obj.hour),\
+           {'sum_temp':float(line[7]),'samples':1,'temp_max':float(line[10]),'temp_min':float(line[9])})
 
 #verifica dei parametri passati in input se argv==2 allora i due parametri indicano rispettivamente,
 #data di inizio e data di fine periodo di osservazione, altrimenti ci si aspetta un solo parametro in input,
@@ -29,7 +35,8 @@ else:
     days_before = int(sys.argv[1])
 
 def temp_to_row(w):
-    return Row(citta=w['citta'], regione=w['regione'],anno=w['anno'],mese=w['mese'],giorno=w['giorno'],ora=w['ora'],temp=w['temp'])
+    return Row(citta=w['citta'], provincia=w['provincia'], regione=w['regione'],anno=w['anno'],mese=w['mese'],giorno=w['giorno'],ora=w['ora'],\
+               temp_avg =w['temp_avg'], temp_max = w['temp_max'], temp_min = w['temp_min'])
 
 def filtro_data_with_fine_periodo(line):
     data = datetime.datetime.strptime(line[20], '%Y-%m-%d %H:%M:%S').date()
@@ -45,7 +52,7 @@ ss = SparkSession \
     .appName("myApp") \
     .config("spark.mongodb.output.uri", f"mongodb://127.0.0.1/db_meteo.batch_view_temp_{sys.argv[1]}").getOrCreate()
 
-dati_meteo = ss.sparkContext.textFile("hdfs://localhost:9000/user/giacomo/input/data_aws_without_header.csv")
+dati_meteo = ss.sparkContext.textFile("hdfs://localhost:9000/user/giacomo/input/dati_meteo_without_header.csv")
 
 rdd_meteo = dati_meteo.map(lambda line: line.split(','))
 #verifica se in input è stato passato un intervallo temporale oppure il numero di giorni a partire dalla data odierna su
@@ -56,9 +63,10 @@ else:
     rdd_meteo = rdd_meteo.filter(filtro_data_without_fine_periodo)
 rdd_meteo = rdd_meteo.map(map_k_v)
 
-rdd_meteo = rdd_meteo.reduceByKey(sum_temp)
-rdd_meteo = rdd_meteo.map(lambda a: (a[0],a[1]['sum_temp']/a[1]['samples']))
-rdd_meteo = rdd_meteo.map(lambda a:{'citta':a[0][0],'regione':a[0][1],'anno':a[0][2],'mese':a[0][3],'giorno':a[0][4],'ora':a[0][5],'temp':a[1]})
+rdd_meteo = rdd_meteo.reduceByKey(reduce_temp)
+rdd_meteo = rdd_meteo.map(lambda a: (a[0],{'temp_avg':a[1]['sum_temp']/a[1]['samples'],'temp_max':a[1]['temp_max'],'temp_min':a[1]['temp_min']}))
+rdd_meteo = rdd_meteo.map(lambda a:{'citta':a[0][0],'provincia':a[0][1],'regione':a[0][2],'anno':a[0][3],'mese':a[0][4],'giorno':a[0][5],'ora':a[0][6],\
+                                    'temp_avg':a[1]['temp_avg'],'temp_max':a[1]['temp_max'],'temp_min':a[1]['temp_min']})
 row_rdd_meteo = rdd_meteo.map(temp_to_row)
 #rdd_meteo = rdd_meteo.map(lambda a: (a[0][0],{'anno':a[0][1],'mese':a[0][2],'giorno':a[0][3],'ora':a[0][4],'temp':a[1]}))
 #rdd_meteo.foreach(lambda a: print(a))

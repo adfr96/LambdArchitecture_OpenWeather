@@ -4,7 +4,7 @@ from datetime import datetime
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession, Row
 from pyspark.streaming import StreamingContext
-from LambdArchitecture_OpenWeather.propertis import PROJ_DIR, TTL, BATCH_DURATION, SLIDE_DURATION, WINDOW_DURATION
+from LambdArchitecture_OpenWeather.properties import PROJ_DIR, TTL, BATCH_DURATION, SLIDE_DURATION, WINDOW_DURATION
 import json
 
 # import os
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     sum_temp = temp_stream.map(lambda r_t: (r_t[0], (r_t[1], 1))).reduceByKeyAndWindow(sum_func, invFunc=diff_func,
                                                                                        windowDuration=WINDOW_DURATION,
                                                                                        slideDuration=SLIDE_DURATION)
-    # sum_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
+    # reduce_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
     avg_temp = sum_temp.filter(lambda a: a[1][1] > 0).map(lambda a: {'regione': a[0], 'media_temp': a[1][0] / a[1][1]})
 
     # avg_temp.pprint(num=1000)
