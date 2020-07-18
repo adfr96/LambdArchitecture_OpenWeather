@@ -6,9 +6,7 @@ import jsons
 jsons.suppress_warnings()
 import pandas as pd
 import sys
-sys.path.append('..')
 from datetime import datetime
-
 from LambdArchitecture_OpenWeather.propertis import PROJ_DIR, TTL
 
 appId = sys.argv[1]

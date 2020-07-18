@@ -2,7 +2,6 @@ from datetime import datetime
 from confluent_kafka import Consumer
 import socket
 import sys
-sys.path.append('..')
 import time
 import json
 
