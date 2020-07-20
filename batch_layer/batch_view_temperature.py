@@ -5,6 +5,11 @@ import os
 
 os.environ['PYSPARK_SUBMIT_ARGS']= '--packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.2 pyspark-shell'
 
+def toCelsius(temp):
+    if temp>100:
+        return (float(temp) - 273.15)
+    else:
+        return temp
 
 def reduce_temp(t1, t2):
     t = {}
@@ -21,7 +26,7 @@ def convert_str_to_date(str_date):
 def map_k_v(line):
     date_time_obj = datetime.datetime.strptime(line[20], '%Y-%m-%d %H:%M:%S')
     return ((line[0],line[1],line[2],date_time_obj.year,date_time_obj.month,date_time_obj.day,date_time_obj.hour),\
-           {'sum_temp':float(line[7]),'samples':1,'temp_max':float(line[10]),'temp_min':float(line[9])})
+           {'sum_temp':toCelsius(float(line[7])),'samples':1,'temp_max':toCelsius(float(line[10])),'temp_min':toCelsius(float(line[9]))})
 
 #verifica dei parametri passati in input se argv==2 allora i due parametri indicano rispettivamente,
 #data di inizio e data di fine periodo di osservazione, altrimenti ci si aspetta un solo parametro in input,
