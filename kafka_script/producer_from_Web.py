@@ -132,7 +132,7 @@ while now < start_time + TTL:
     p.poll(0)
     p.produce(topic, line.encode('utf-8'), callback=delivery_report)
 
-    time.sleep(1.5)
+    time.sleep(1.2)
 
 p.flush()
 
