@@ -7,7 +7,7 @@ jsons.suppress_warnings()
 import pandas as pd
 import sys
 from datetime import datetime
-from LambdArchitecture_OpenWeather.propertis import PROJ_DIR, TTL
+from LambdArchitecture_OpenWeather.properties import PROJ_DIR, TTL
 
 appId = sys.argv[1]
 topic = sys.argv[2]

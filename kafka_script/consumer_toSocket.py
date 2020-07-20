@@ -5,7 +5,7 @@ import sys
 import time
 import json
 
-from LambdArchitecture_OpenWeather.propertis import PORT_CONSUMER_TO_STREAMING, TTL
+from LambdArchitecture_OpenWeather.properties import PORT_CONSUMER_TO_STREAMING, TTL
 
 HOST = 'localhost'
 address = (HOST, PORT_CONSUMER_TO_STREAMING)
