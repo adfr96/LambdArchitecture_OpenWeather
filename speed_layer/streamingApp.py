@@ -75,10 +75,10 @@ if __name__ == "__main__":
     sc = SparkContext(appName="PythonStreaming_SpeedLayer4LambdArchitecture")
     ssc = StreamingContext(sc, batchDuration=BATCH_DURATION)  # 10 second window
 
-    d_stream = ssc.socketTextStream('localhost', 2020)
+    meteo_stream = ssc.socketTextStream('localhost', 2020)
     ssc.checkpoint(PROJ_DIR + 'data/checkpoint/')
-    d_stream = d_stream.flatMap(lambda row: row.split('\n'))
-    d_stream = d_stream.map(lambda row: json.loads(row))
+    meteo_stream = meteo_stream.flatMap(lambda row: row.split('\n'))
+    meteo_stream = meteo_stream.map(lambda row: json.loads(row))
 
     """
     ELABORAZIONE DATI
@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
     # MEDIA TEMPERATURA PER REGIONE
 
-    temp_stream = d_stream.map(lambda row: (row['regione'], row['temp']))
+    temp_stream = meteo_stream.map(lambda row: (row['regione'], row['temp']))
     sum_temp = temp_stream.map(lambda r_t: (r_t[0], (r_t[1], 1))).reduceByKeyAndWindow(sum_func, invFunc=diff_func,
                                                                                        windowDuration=WINDOW_DURATION,
                                                                                        slideDuration=SLIDE_DURATION)
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
     # CONTROLLO VENTO FORTE PER CITTA
 
-    wind_stream = d_stream.map(
+    wind_stream = meteo_stream.map(
         lambda row: {'citta': row['citta'], 'wind_speed': row['wind_speed'], 'wind_deg': row['wind_deg'],
                      'date': row['datetime']})
     wind_stream = wind_stream.filter(lambda c_w: c_w['wind_speed'] > WIND_THRESHOLD)
@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
     # PIOGGIA A BREVE
 
-    rain_stream = d_stream.map(lambda row: {'citta': row['citta'], 'rain_1h': row['rain_1h'], 'rain_3h': row['rain_3h'],
+    rain_stream = meteo_stream.map(lambda row: {'citta': row['citta'], 'rain_1h': row['rain_1h'], 'rain_3h': row['rain_3h'],
                                             'date': row['datetime']})
     rain_stream = rain_stream.filter(lambda rain: rain['rain_1h'] != 0 or rain['rain_3h'] != 0)
 
@@ -127,7 +127,7 @@ if __name__ == "__main__":
 
     # PIOGGIA ORA
 
-    rain_now_stream = d_stream.map(
+    rain_now_stream = meteo_stream.map(
         lambda row: {'citta': row['citta'], 'main': row['weather_main'], 'date': row['datetime']})
     rain_now_stream = rain_now_stream.filter(lambda rain: rain['main'] == 'Rain')
 
