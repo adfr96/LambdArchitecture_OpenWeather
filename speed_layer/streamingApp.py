@@ -4,6 +4,7 @@ from pyspark.sql import SparkSession, Row
 from pyspark.streaming import StreamingContext
 from LambdArchitecture_OpenWeather.propertis import PROJ_DIR, TTL, BATCH_DURATION, SLIDE_DURATION, WINDOW_DURATION
 import json
+from pyspark.streaming.kafka import
 
 # import os
 # os.environ['PYSPARK_SUBMIT_ARGS']= '--packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.2 pyspark-shell'
@@ -72,7 +73,7 @@ if __name__ == "__main__":
 
     print(f'start time: {datetime.now()}')
 
-    sc = SparkContext(appName="PythonStreamingRecieverKafkaWordCount")
+    sc = SparkContext(appName="PythonStreaming_SpeedLayer4LambdArchitecture")
     ssc = StreamingContext(sc, batchDuration=BATCH_DURATION)  # 10 second window
 
     d_stream = ssc.socketTextStream('localhost', 2020)
