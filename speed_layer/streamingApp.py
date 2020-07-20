@@ -134,4 +134,4 @@ if __name__ == "__main__":
     rain_now_stream.foreachRDD(show_rain_now_dataframe)
 
     ssc.start()
-    ssc.awaitTermination(TTL)
+    ssc.awaitTermination(TTL+10)
