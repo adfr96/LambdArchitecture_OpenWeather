@@ -4,25 +4,14 @@ myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 mydb = myclient["db_meteo"]
 collections = mydb.collection_names()
 
-prefix_view = "real"
-for i in collections:
-    if prefix_view in i:
-        print(i)
-"""
-mycol = mydb["batch_view_avg_temp_1"]
-mycol = mydb["batch_view_avg_temp_3"]
-mycol = mydb["batch_view_avg_temp_7"]
-mycol = mydb["batch_view_avg_temp_15"]
-mycol = mydb["batch_view_avg_temp_30"]
+prefix_view = "batch"
+for c in collections:
+    mycol = mydb[c]
+    if prefix_view in c:
+        print(f'cancellazione view: {mycol}')
+        #print(mycol)
+        mycol.drop()
 
-mycol = mydb["batch_view_wind_max_1"]
-mycol = mydb["batch_view_wind_max_3"]
-mycol = mydb["batch_view_wind_max_7"]
-mycol = mydb["batch_view_wind_max_15"]
-mycol = mydb["batch_view_wind_max_30"]
-"""
-
-#mycol = mydb["batch_view_temp_3"]
 """
 l = mycol.find({"ora":10})
 for a in l:
