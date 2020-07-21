@@ -5,9 +5,9 @@ from pyspark.streaming import StreamingContext
 from LambdArchitecture_OpenWeather.properties import PROJ_DIR, TTL, BATCH_DURATION, SLIDE_DURATION, WINDOW_DURATION
 import json
 
-# import os
-# os.environ['PYSPARK_SUBMIT_ARGS']= '--packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.2 pyspark-shell'
-
+"""import os
+os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.2 pyspark-shell'
+"""
 # PROJ_DIR = '/home/giacomo/Documenti/progetto-2_big_data/'
 # PROJ_DIR = sys.argv[1]
 
@@ -29,7 +29,7 @@ def rain_now_to_row(r):
 
 def temp_to_row(t):
     return Row(city=t['citta'], provincia=t['provincia'], regione=t['regione'], media_temp=t['media_temp'],
-               anno=t['anno'], mese=t['mese'], giorno=t['giorno'], ora=t['ora'])
+               anno=t['anno'], mese=t['mese'], giorno=t['giorno'], ora=t['ora'], samples=t['samples'], time=t['time'])
 
 
 def show_wind_dataframe(rdd):
@@ -65,8 +65,8 @@ def show_dataframe(rdd, to_row):
 
         rowRdd = rdd.map(to_row)
         dataframe = spark.createDataFrame(rowRdd)
-
-        dataframe.show()
+        print(datetime.now())
+        dataframe.show(n=1000)
 
 
 def wind_to_mongo(rdd):
@@ -78,7 +78,7 @@ def temp_to_mongo(rdd):
 
 
 def rain_to_mongo(rdd):
-    to_mongo(rdd, rain_to_row(), "real_view_rain")
+    to_mongo(rdd, rain_to_row, "real_view_rain")
 
 
 def to_mongo(rdd, to_row, view_name):
@@ -89,6 +89,20 @@ def to_mongo(rdd, to_row, view_name):
         dataframe = spark_session.createDataFrame(rowRdd)
 
         dataframe.write.format("mongo").mode("append").save()
+
+
+def reduce_func(a, b):
+    return (a[0] + b[0], a[1] + b[1])
+
+
+def diff_func(a, b):
+    return (a[0] - b[0], a[1] - b[1])
+
+
+def map_temp(row):
+    date = datetime.strptime(row['datetime'][:19], '%Y-%m-%dT%H:%M:%S')
+    return (row['citta'], row['provincia'], row['regione'], date.year, date.month, date.day, date.hour), (
+        row['temp'], 1)
 
 
 if __name__ == "__main__":
@@ -106,38 +120,31 @@ if __name__ == "__main__":
     ELABORAZIONE DATI
     """
 
-
     # MEDIA TEMPERATURA
 
-    def sum_func(a, b):
-        return (a[0] + b[0], a[1] + b[1])
-
-
-    def diff_func(a, b):
-        return (a[0] - b[0], a[1] - b[1])
-
-
-    def map_temp(row):
-        date = datetime.strptime(row['datetime'][:19], '%Y-%m-%dT%H:%M:%S')
-        return (row['citta'], row['provincia'], row['regione'], date.year, date.month, date.day, date.hour), (
-            row['temp'], 1)
-
-
     # temp_stream = meteo_stream.map(lambda row: (row['citta'],row['provincia'],row['regione'],row['temp']))
-    temp_stream = meteo_stream.map(map_temp).reduceByKeyAndWindow(sum_func, invFunc=diff_func,
+    temp_stream = meteo_stream.map(map_temp)
+    # filtrare quelle dell'ora attuale
+    temp_stream = temp_stream.window(windowDuration=WINDOW_DURATION, slideDuration=SLIDE_DURATION).filter(
+        lambda row: row[0][6] == datetime.now().hour)
+    temp_stream = temp_stream.reduceByKey(reduce_func)
+    """temp_stream = temp_stream.reduceByKeyAndWindow(reduce_func, invFunc=diff_func,
                                                                   windowDuration=WINDOW_DURATION,
                                                                   slideDuration=SLIDE_DURATION)
+    """
     # reduce_temp.saveAsTextFiles(PROJ_DIR+'data/output/test/')
     avg_temp = temp_stream.filter(lambda a: a[1][1] > 0).map(lambda a: {'citta': a[0][0],
                                                                         'provincia': a[0][1], 'regione': a[0][2],
                                                                         'anno': a[0][3], 'mese': a[0][4],
                                                                         'giorno': a[0][5], 'ora': a[0][6],
-                                                                        'media_temp': a[1][0] / a[1][1]})
+                                                                        'media_temp': a[1][0] / a[1][1],
+                                                                        'samples': a[1][1],
+                                                                        'time': datetime.now()})
 
     # avg_temp.pprint(num=1000)
     # avg_temp.saveAsTextFiles(PROJ_DIR+'data/output/avg_temp/')
     avg_temp.foreachRDD(show_temp_dataframe)
-    # avg_temp.foreachRDD(temp_to_mongo)
+    avg_temp.foreachRDD(temp_to_mongo)
 
     # CONTROLLO VENTO FORTE PER CITTA
 
@@ -149,7 +156,7 @@ if __name__ == "__main__":
     # wind_stream.saveAsTextFiles(PROJ_DIR+'data/output/wind/')
 
     wind_stream.foreachRDD(show_wind_dataframe)
-    # wind_stream.foreachRDD(wind_to_mongo)
+    wind_stream.foreachRDD(wind_to_mongo)
 
     # PIOGGIA A BREVE
 
@@ -162,7 +169,7 @@ if __name__ == "__main__":
     # rain_stream = rain_stream.filter(lambda rain: rain['rain_1h'] != 0 or rain['rain_3h'] != 0)
 
     rain_stream.foreachRDD(show_rain_dataframe)
-    # rain_stream.foreachRDD(rain_to_mongo)
+    rain_stream.foreachRDD(rain_to_mongo)
 
     ssc.start()
     ssc.awaitTermination(TTL + 20)
