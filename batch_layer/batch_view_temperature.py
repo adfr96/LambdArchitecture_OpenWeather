@@ -2,7 +2,6 @@ from pyspark.sql import SparkSession,Row
 import datetime
 import sys
 import os
-
 os.environ['PYSPARK_SUBMIT_ARGS']= '--packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.2 pyspark-shell'
 
 def toCelsius(temp):
@@ -58,6 +57,29 @@ ss = SparkSession \
     .config("spark.mongodb.output.uri", f"mongodb://127.0.0.1/db_meteo.batch_view_temp_{sys.argv[1]}").getOrCreate()
 
 dati_meteo = ss.sparkContext.textFile("hdfs://localhost:9000/user/giacomo/input/dati_meteo_without_header.csv")
+
+if flag_periodo:
+    data  = fine_periodo
+    i = 0
+    while data>= inizio_periodo:
+        data = datetime.date.today() - datetime.timedelta(days=i)
+        try:
+            dati_meteo_un_giorno = ss.sparkContext.textFile(f'hdfs://localhost:9000/user/giacomo/input/dati_meteo_{data}.csv')
+            dati_meteo = dati_meteo.union(dati_meteo_un_giorno)
+            break
+        except Exception:
+            print("file Not Found\n")
+        i += 1
+
+else:
+    for i in range(days_before):
+        data =datetime.date.today() - datetime.timedelta(days=days_before)
+        try:
+            dati_meteo_un_giorno  = ss.sparkContext.textFile(f'hdfs://localhost:9000/user/giacomo/input/dati_meteo_{data}.csv')
+            dati_meteo = dati_meteo.union(dati_meteo_un_giorno)
+            break
+        except Exception:
+            print("file Not Found\n")
 
 rdd_meteo = dati_meteo.map(lambda line: line.split(','))
 #verifica se in input è stato passato un intervallo temporale oppure il numero di giorni a partire dalla data odierna su

@@ -3,7 +3,7 @@ from pyspark.sql import SparkSession,Row
 import datetime
 import sys
 import os
-os.environ['PYSPARK_SUBMIT_ARGS']= '--packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.2 pyspark-shell'
+#os.environ['PYSPARK_SUBMIT_ARGS']= '--packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.2 pyspark-shell'
 
 #inizio = datetime.datetime.now().time()
 #print(inizio)
