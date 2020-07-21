@@ -5,7 +5,10 @@ import sys
 import time
 import json
 
-from LambdArchitecture_OpenWeather.propertis import PORT_CONSUMER_TO_STREAMING, TTL
+#from LambdArchitecture_OpenWeather.propertis import PORT_CONSUMER_TO_STREAMING, TTL
+
+PORT_CONSUMER_TO_STREAMING =  3000 # number of port for communication
+TTL =  180# time (in second) to live application
 
 HOST = 'localhost'
 address = (HOST, PORT_CONSUMER_TO_STREAMING)
@@ -24,6 +27,7 @@ s = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
 s.bind(address)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1024)
 print("In attesa della connessione")
+
 s.listen()
 conn, addr = s.accept()
 print(f'Connesso a {conn.getpeername()}')
@@ -47,7 +51,7 @@ while now < start_time + TTL:
     message = json.dumps(row) + '\n'
     sended = conn.send(message.encode())
     print(f'sended message to socket: {conn.getpeername()}')
-    # print('Received message: {}'.format(msg.value().decode('utf-8')))
+    #print('Received message: {}'.format(msg.value().decode('utf-8')))
 
 s.close()
 c.close()
