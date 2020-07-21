@@ -6,7 +6,7 @@ import json
 import pydoop.hdfs as hdfs
 import csv
 
-from LambdArchitecture_OpenWeather.propertis import PORT_CONSUMER_TO_STREAMING, TTL
+from LambdArchitecture_OpenWeather.properties import PORT_CONSUMER_TO_STREAMING, TTL
 
 name = sys.argv[1]
 topic = sys.argv[2]

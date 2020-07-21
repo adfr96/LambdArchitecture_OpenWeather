@@ -5,10 +5,8 @@ import sys
 import time
 import json
 
-#from LambdArchitecture_OpenWeather.propertis import PORT_CONSUMER_TO_STREAMING, TTL
+from LambdArchitecture_OpenWeather.properties import PORT_CONSUMER_TO_STREAMING, TTL
 
-PORT_CONSUMER_TO_STREAMING =  3000 # number of port for communication
-TTL =  180# time (in second) to live application
 
 HOST = 'localhost'
 address = (HOST, PORT_CONSUMER_TO_STREAMING)

@@ -1,5 +1,5 @@
 """
-create a propertis.py file from this template
+create a properties.py file from this template
 
 TTL =  # time (in second) to live application
 PROJ_DIR =   # home directory of project
