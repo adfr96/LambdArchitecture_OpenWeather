@@ -13,12 +13,13 @@ name = sys.argv[1]
 
 def save_to_file(row_list):
     """
-    #per il partion veritcal, in questo modo i dati vengono partizionati giornalmente,
-    #tuti i dati dello stesso giorno sono raccolti nello stesso file con nome: dati_meteo_data_del_giorno
+    per il partion veritcal, i dati vengono partizionati giornalmente, tutti i dati dello stesso giorno,
+    sono raccolti nello stesso file con nome: dati_meteo_data_del_giorno
+    """
+    #inizialmente prima di realizzare il partition vertical i dati vengono caricati all'interno dello stesso file
+    # with hdfs.open("data/data_openWeather.csv", mode='at') as csv_file:
     today = data = datetime.date.today()
     with hdfs.open(f'data/dati_meteo_{today}', mode='at') as csv_file:
-    """
-    with hdfs.open("data/data_openWeather.csv", mode='at') as csv_file:
         fieldnames = row_list[0].keys()
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writerows(row_list)
