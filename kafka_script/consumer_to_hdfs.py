@@ -6,10 +6,9 @@ import json
 import pydoop.hdfs as hdfs
 import csv
 
-from LambdArchitecture_OpenWeather.properties import PORT_CONSUMER_TO_STREAMING, TTL
+from LambdArchitecture_OpenWeather.properties import TTL,TOPIC
 
 name = sys.argv[1]
-topic = sys.argv[2]
 
 
 def save_to_file(row_list):
@@ -34,7 +33,7 @@ c = Consumer({
     'auto.offset.reset': 'earliest'
 })
 
-c.subscribe([topic])
+c.subscribe([TOPIC])
 
 start_time = time.time()
 now = start_time
@@ -54,13 +53,12 @@ while now < start_time + TTL:
         continue
 
     row = json.loads(msg.value().decode('utf-8'))  # dict
-    # message = json.dumps(row) + '\n' #string
+
     row_list.append(row)
     if now > last_save + SAVE_TIME:
         save_to_file(row_list)
         row_list.clear()
         last_save = time.time()
-    # print('Received message: {}'.format(msg.value().decode('utf-8')))
 
 c.close()
 print(f'End time: {datetime.now()}')
