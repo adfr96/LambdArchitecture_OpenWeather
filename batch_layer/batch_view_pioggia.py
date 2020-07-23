@@ -45,7 +45,13 @@ ss = SparkSession \
     .appName("myApp") \
     .config("spark.mongodb.output.uri", f"mongodb://127.0.0.1/db_meteo.batch_view_rain_{sys.argv[1]}").getOrCreate()
 
+"""file utilizzato per il test"""
 #dati_meteo = ss.sparkContext.textFile("hdfs://localhost:9000/user/giacomo/input/data_aws_duplicato_02_without_header.csv")
+
+"""
+In base al parametro: se è un intervallo temporale o giorni(a partire dalla data odierna) su cui fare l'analisi
+avviene un diverso caricamento dei dati dal master dataset
+"""
 if flag_periodo:
     data  = fine_periodo
     i = 0
