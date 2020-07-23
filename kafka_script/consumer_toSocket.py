@@ -5,13 +5,12 @@ import sys
 import time
 import json
 
-from LambdArchitecture_OpenWeather.properties import PORT_CONSUMER_TO_STREAMING, TTL
+from LambdArchitecture_OpenWeather.properties import PORT_CONSUMER_TO_STREAMING, TTL, TOPIC
 
 
 HOST = 'localhost'
 address = (HOST, PORT_CONSUMER_TO_STREAMING)
 name = sys.argv[1]
-topic = sys.argv[2]
 
 print(f'Start time: {datetime.now()}')
 c = Consumer({
@@ -20,7 +19,7 @@ c = Consumer({
     'auto.offset.reset': 'earliest'
 })
 
-c.subscribe([topic])
+c.subscribe([TOPIC])
 s = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
 s.bind(address)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1024)

@@ -7,4 +7,5 @@ PORT_CONSUMER_TO_STREAMING =   # number of port for communication
 BATCH_DURATION =  #batch duration of streaming app
 WINDOW_DURATION =  #windows lenght in streaming app
 SLIDE_DURATION =  #slide duration of window in streaming app, must be a multiple of BATCH_DURATION
+TOPIC = #Kafka topic for comunication
 """

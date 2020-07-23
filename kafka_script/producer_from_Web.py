@@ -7,10 +7,9 @@ jsons.suppress_warnings()
 import pandas as pd
 import sys
 from datetime import datetime
-from LambdArchitecture_OpenWeather.properties import PROJ_DIR, TTL
+from LambdArchitecture_OpenWeather.properties import PROJ_DIR, TTL, TOPIC
 
 appId = sys.argv[1]
-topic = sys.argv[2]
 INDEX = 0
 
 def delivery_report(err, msg):
@@ -130,7 +129,7 @@ while now < start_time + TTL:
     print("read line: \n "+line)
 
     p.poll(0)
-    p.produce(topic, line.encode('utf-8'), callback=delivery_report)
+    p.produce(TOPIC, line.encode('utf-8'), callback=delivery_report)
 
     time.sleep(1.2)
 
