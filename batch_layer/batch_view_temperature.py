@@ -56,7 +56,7 @@ ss = SparkSession \
     .appName("myApp") \
     .config("spark.mongodb.output.uri", f"mongodb://127.0.0.1/db_meteo.batch_view_temp_{sys.argv[1]}").getOrCreate()
 
-dati_meteo = ss.sparkContext.textFile("hdfs://localhost:9000/user/giacomo/input/dati_meteo_without_header.csv")
+dati_meteo = ss.sparkContext.textFile("hdfs://localhost:9000/user/giacomo/input/data_aws_duplicato_02_without_header.csv")
 
 if flag_periodo:
     data  = fine_periodo
@@ -82,6 +82,7 @@ else:
             print("file Not Found\n")
 
 rdd_meteo = dati_meteo.map(lambda line: line.split(','))
+
 #verifica se in input è stato passato un intervallo temporale oppure il numero di giorni a partire dalla data odierna su
 # cui si vuole fare l'analisi
 if(flag_periodo):

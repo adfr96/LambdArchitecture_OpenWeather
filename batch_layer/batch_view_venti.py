@@ -74,7 +74,35 @@ data_odierna = datetime.date.today()
 period = int(sys.argv[1])
 ultima_data_utile = datetime.date.today() - datetime.timedelta(days=period)
 
-dati_meteo = ss.sparkContext.textFile("hdfs://localhost:9000/user/giacomo/input/dati_meteo_without_header.csv")
+"""file utilizzato per il test"""
+#dati_meteo = ss.sparkContext.textFile("hdfs://localhost:9000/user/giacomo/input/data_aws_duplicato_02_without_header.csv")
+
+"""
+In base al parametro: se è un intervallo temporale o giorni(a partire dalla data odierna) su cui fare l'analisi
+avviene un diverso caricamento dei dati dal master dataset
+"""
+if flag_periodo:
+    data  = fine_periodo
+    i = 0
+    while data>= inizio_periodo:
+        data = datetime.date.today() - datetime.timedelta(days=i)
+        try:
+            dati_meteo_un_giorno = ss.sparkContext.textFile(f'hdfs://localhost:9000/user/giacomo/input/dati_meteo_{data}.csv')
+            dati_meteo = dati_meteo.union(dati_meteo_un_giorno)
+            break
+        except Exception:
+            print("file Not Found\n")
+        i += 1
+
+else:
+    for i in range(days_before):
+        data =datetime.date.today() - datetime.timedelta(days=days_before)
+        try:
+            dati_meteo_un_giorno  = ss.sparkContext.textFile(f'hdfs://localhost:9000/user/giacomo/input/dati_meteo_{data}.csv')
+            dati_meteo = dati_meteo.union(dati_meteo_un_giorno)
+            break
+        except Exception:
+            print("file Not Found\n")
 
 rdd_meteo = dati_meteo.map(lambda line: line.split(','))
 

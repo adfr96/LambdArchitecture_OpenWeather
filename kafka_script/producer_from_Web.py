@@ -116,7 +116,7 @@ def getProvincia(id_provincie):
 
 print(f'Start time: {datetime.now()}')
 
-id_provincie = pd.read_csv(PROJ_DIR + 'LambdArchitecture_OpenWeather/file_csv/id_provincie.csv', sep=',')
+id_provincie = pd.read_csv(PROJ_DIR + '/file_csv/id_provincie.csv', sep=',')
 id_provincie = id_provincie.values
 
 p = Producer({'bootstrap.servers': 'localhost:9092'})

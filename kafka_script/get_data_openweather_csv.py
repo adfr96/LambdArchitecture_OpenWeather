@@ -84,7 +84,8 @@ with open('/home/giacomo/Documenti/dati_meteo.csv', 'w') as file:
 			row["snow_1h"]=0
 			row["snow_3h"]=0
 		
-		row["datetime"] = datetime.datetime.fromtimestamp(data["dt"])
+		row["datetime"] = datetime.datetime.fromtimestamp(data["dt"])+datetime.timedelta(hours=2)
+
 		
 		writer.writerow([row["citta"],row["provincia"],row["regione"],row["coord"],row["weather_main"],row["weather_description"],
 			row["temp"],row["feels_like"],row["temp_min"],row["temp_max"],row["pressure"],row["humidity"],
