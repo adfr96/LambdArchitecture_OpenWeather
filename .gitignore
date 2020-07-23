@@ -15,3 +15,7 @@ __pycache__/
 __pycache__/*
 *.py[cod]
 *$py.class
+/kafka_script/get_data_openweather_csv.py
+/batch_layer/test_sparkSQL_mongodb.py
+/batch_layer/test_spark_hadoop2.py
+/batch_layer/batch_view_vento_sparkSQL.py
